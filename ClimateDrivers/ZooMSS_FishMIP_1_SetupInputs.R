@@ -1,51 +1,54 @@
 library(tidync)
-library(lubridate)
 library(tidyverse)
 library(PCICt)
+library(lubridate)
 
-raw_data <- "../Input/raw/"
-proc_data <- "../Input/processed/"
+base_dir <- paste0("~",.Platform$file.sep,
+                  "Nextcloud",.Platform$file.sep,
+                  "MME2Work",.Platform$file.sep,
+                  "FishMIP")
 
-var = {}
-
-models <- {}
-
-# phy
-# Size:       360x180x120
-# Dimensions: lon,lat,time
-# Datatype:   double
-# Attributes:
-#   units         = 'mmol/m^2'
-# _FillValue    = NaN
-# missing_value = NaN
-
-# time
-# Size:       120x1
-# Dimensions: time
-# Datatype:   double
-# Attributes:
-#   standard_name = 'time'
-# long_name     = 'time'
-# units         = 'days since 1661-1-1 00:00:00'
-# calendar      = '365_day'
-# axis          = 'T'
+## Load ZooMSS Matrix Enviro Data
+enviro_data <- read_rds("~/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/enviro_Matrix.RDS")
 
 
-temp = sort(list.files(path = "/Users/jason/GitHub/ZooMSS_FishMIP/Input/raw/hist",
-                  pattern = "cesm_hist_phy_zint_monthly_185001*",
-                  full.names = TRUE))
-nc <- bind_rows(map_df(temp, function(x) hyper_tibble(x)))
+model <- c("pi", "hist", "rcp85")
 
-nc2 <- data.frame(time = unique(nc$time))
+for (m in 1:length(model)){
+  file_p = sort(list.files(path = paste0(base_dir,"InputFiles/raw/",model[m]), pattern = paste0("cesm_",model[m],"_phy*"), full.names = TRUE))
+  file_s = sort(list.files(path = paste0(base_dir,"InputFiles/raw/",model[m]), pattern = paste0("cesm_",model[m],"_to*"), full.names = TRUE))
 
+  # Load files into tibble
+  nc <- bind_rows(map_df(file_p, function(x) hyper_tibble(x))) # Load phytoplankton files
+  nc2 <- bind_rows(map_df(file_s, function(x) hyper_tibble(x))) %>% # Load temperature files
+    select("to")
+  nc <- bind_cols(nc, nc2) # Join temp and phyto dataframes
+  rm(nc2)
 
-q <- as.PCICt(as.POSIXlt(nc2$time*86400), cal="365_day", origin = "1661-01-01 00:00:00", tz = "UTC")
+  # Convert Phyto to Chl using ZooMSS calc: from Maranon et al. 2014
+  # Phyto is in units of "mmol/m^2"
+  # / 1000 # to get to moles m-2
+  # / 75 # m MLD to moles m-3
+  # * 12.0107 # mol:g to g m-3
+  # * 1000 # to mg m-3
 
-yrs <- as.numeric(unlist(str_extract_all(f,"\\d+"))) # retrieve start and end year from filename
+  # Process time with PCICt due to 365 day years
+  if (str_detect(model[m], "pi")){
+    time <- as.PCICt((nc$time-31 + 401500)*86400, cal="365_day", origin = "1661-01-01 00:00:00", tz = "UTC") # Something wrong with time in pi
+  }else{
+    time <- as.PCICt((nc$time-31)*86400, cal="365_day", origin = "1661-01-01 00:00:00", tz = "UTC") # Other models use same origin
+  }
 
-start_date <- yrs[1]
+  nc$time <- round_date(as_date(as.character(time)), unit = "month") + 14 # Convert to lubridate time and round to 15th of month.
 
+  nc <- nc %>%
+    filter(time >= ymd("1860-01-01")) %>% # For FishMIP we don't need earlier dates
+    mutate(Chl_log10 = (log10(phy /1000 / 75 * 12.0107 * 1000) -1.79)/0.89) %>% # Convert to Chl
+    rename("SST" = to) %>% # Clean up
+    select(-phy)
 
-nc <- hyper_tibble(f)
+  write_rds(nc, paste0(base_dir,"Output/CESM_",model[m],".rds")) # Save to RDM
 
-t <- unique(nc$time)
+  rm(nc, file_p, file_s, time)
+}
+
