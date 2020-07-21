@@ -20,21 +20,21 @@ files <- c(paste0(out_dir,"CESM_pi_withZooMSS.rds"),
            paste0(out_dir,"CESM_tempControl_withZooMSS.rds"))
 
 
-nc1 <- hyper_tibble(paste0(out_dir, "ZooMSS_cesm1-bgc_nobc_historical_nosoc_co2_tcb_global_monthly_1960-2005.nc4"))
+nc1 <- hyper_tibble(paste0(out_dir, "ZooMSS_cesm1-bgc_nobc_historical_nosoc_co2_tcb_global_monthly_1850-2005.nc4"))
 nc2 <- hyper_tibble(paste0(out_dir, "ZooMSS_cesm1-bgc_nobc_rcp85_nosoc_co2_tcb_global_monthly_2006-2100.nc4"))
 nc <- bind_rows(nc1, nc2) %>%
   rename(tcb_all = tcb)
 rm(nc1, nc2)
 
-nc_no <- hyper_tibble(paste0(out_dir, "ZooMSS_cesm1-bgc_nobc_pre-industrial_nosoc_co2_tcb_global_monthly_1960-2100.nc4")) %>%
+nc_no <- hyper_tibble(paste0(out_dir, "ZooMSS_cesm1-bgc_nobc_pre-industrial_nosoc_co2_tcb_global_monthly_1850-2100.nc4")) %>%
   dplyr::select(tcb) %>%
   rename(tcb_no = tcb)
 
-nc_tempC <- hyper_tibble(paste0(out_dir, "ZooMSS_cesm1-bgc_nobc_temperature-control_nosoc_co2_tcb_global_monthly_1960-2100.nc4")) %>%
+nc_tempC <- hyper_tibble(paste0(out_dir, "ZooMSS_cesm1-bgc_nobc_temperature-control_nosoc_co2_tcb_global_monthly_1850-2100.nc4")) %>%
   dplyr::select(tcb) %>%
   rename(tcb_tempC = tcb)
 
-nc_nppC <- hyper_tibble(paste0(out_dir, "ZooMSS_cesm1-bgc_nobc_npp-control_nosoc_co2_tcb_global_monthly_1960-2100.nc4")) %>%
+nc_nppC <- hyper_tibble(paste0(out_dir, "ZooMSS_cesm1-bgc_nobc_npp-control_nosoc_co2_tcb_global_monthly_1850-2100.nc4")) %>%
   dplyr::select(tcb) %>%
   rename(tcb_nppC = tcb)
 
@@ -42,7 +42,9 @@ nc <- bind_cols(nc, nc_no, nc_tempC, nc_nppC) %>%
   mutate(year = year(as_date(time, origin = "1850-1-1")))
 rm(nc_no, nc_nppC, nc_tempC)
 
-nc_y <- nc %>%
+
+## Calculate Annual Averages
+nc_yr <- nc %>%
   group_by(year) %>%
   summarise(
     tcb_all = mean(tcb_all),
@@ -58,8 +60,7 @@ nc_y <- nc %>%
   filter(year >= 1970)
 
 
-
-gg_no <- ggplot(data = nc_y, aes(x = year, y = tcb_no)) +
+gg_no <- ggplot(data = nc_yr, aes(x = year, y = tcb_no)) +
   geom_line(colour = "blue") +
   geom_hline(yintercept = 1) +
   ylab("Biomass Relative to 1960-1970") +
@@ -67,7 +68,7 @@ gg_no <- ggplot(data = nc_y, aes(x = year, y = tcb_no)) +
   theme_bw() +
   ylim(0.8, 1.05)
 
-gg_nppC <- ggplot(data = nc_y, aes(x = year, y = tcb_nppC)) +
+gg_nppC <- ggplot(data = nc_yr, aes(x = year, y = tcb_nppC)) +
   geom_line(colour = "blue") +
   geom_hline(yintercept = 1) +
   ylab("Biomass Relative to 1960-1970") +
@@ -75,7 +76,7 @@ gg_nppC <- ggplot(data = nc_y, aes(x = year, y = tcb_nppC)) +
   theme_bw() +
   ylim(0.8, 1.05)
 
-gg_tempC <- ggplot(data = nc_y, aes(x = year, y = tcb_tempC)) +
+gg_tempC <- ggplot(data = nc_yr, aes(x = year, y = tcb_tempC)) +
   geom_line(colour = "blue") +
   geom_hline(yintercept = 1) +
   ylab("Biomass Relative to 1960-1970") +
@@ -83,7 +84,7 @@ gg_tempC <- ggplot(data = nc_y, aes(x = year, y = tcb_tempC)) +
   theme_bw() +
   ylim(0.8, 1.05)
 
-gg_all <- ggplot(data = nc_y, aes(x = year, y = tcb_all)) +
+gg_all <- ggplot(data = nc_yr, aes(x = year, y = tcb_all)) +
   geom_line(colour = "blue") +
   geom_hline(yintercept = 1) +
   ylab("Biomass Relative to 1960-1970") +
@@ -103,7 +104,7 @@ ggsave("Figures/ZooMSS_tcb_Change.pdf")
 #Filter and summarise 60s
 nc1 <- nc %>%
   mutate(year = year(as_date(time, origin = "1850-1-1"))) %>%
-  filter(year <= 1970) %>%
+  filter(year <= 1970 & year >= 1960) %>%
   group_by(lat, lon) %>%
   summarise(tcb_no = mean(tcb_no),
             tcb_all = mean(tcb_all),
@@ -187,7 +188,7 @@ for (v in 1:4){
 
 graphics.off()
 x11(width = 26, height = 4)
-wrap_plots(gg_map, ncol = 4, guides = "collect")
+wrap_plots(gg_map, ncol = 2, guides = "collect")
 ggsave("Figures/ZooMSS_tcb_MappedChange.pdf")
 
 
@@ -200,10 +201,12 @@ nc_wide <- nc %>%
     tcb = mean(tcb_all),
     .groups = "keep") %>%
   ungroup() %>%
-  pivot_wider(names_from = year, values_from = tcb)
+  pivot_wider(names_from = year, values_from = tcb, names_prefix = "X")
 
 nc_ani_raster <- rasterFromXYZ(nc_wide, crs = lonlatCRS)  #Convert first two columns as lon-lat and third as value
-nc_ani_poly <- rasterToPolygons(nc_ani_raster, fun=NULL, n=4, na.rm=TRUE, digits=12, dissolve=FALSE) # Convert to polygon which is better for plotting
+names(nc_ani_raster) <- unique(nc$year) # Names aren't preserved above
+
+nc_ani_poly <- rasterToPolygons(nc_ani_raster, fun=NULL, n=4, na.rm=FALSE, digits=12, dissolve=FALSE) # Convert to polygon which is better for plotting
 nc_ani_sf <- st_as_sf(nc_ani_poly)
 
 
@@ -212,20 +215,23 @@ nc_ani_sf_long <- nc_ani_sf %>%
                names_to = "year",
                values_to = "tcb") %>%
   mutate(year = str_replace(year, "X", ""),
-         year = as.numeric(year))
+         year = as.numeric(year)) %>%
+  filter(year == 1970) %>%
+  st_as_sf()
 
 
 gg_ani <- ggplot() +
-  geom_sf(data = nc_ani_sf_long, aes(fill = tcb, colour = NA)) +
+  geom_sf(data = nc_ani_sf_long, aes(fill = tcb), colour = NA) +
   # geom_sf(data = world_sf, size = 0.05, fill = "grey20") +
-  scale_fill_gradient2(name = "Biomass Change (%)",
-                       # direction = 1,
+  scale_fill_distiller(name = expression(paste("Biomass (g C m"^-2,")")),
+                      palette = "OrRd",
+                       direction = 1,
                        # limits = c(quantile(r0$layer, .05), quantile(data_moll_df$layer, .95)),
-                       limits = c(-60, 60),
-                       midpoint = 0,
-                       low = "red",
-                       mid = "white",
-                       high = "blue",
+                       limits = c(0, 60),
+                       # midpoint = 0,
+                       # low = "red",
+                       # mid = "white",
+                       # high = "blue",
                        # breaks = ticks,
                        # labels = clabel,
                        position = "right",
@@ -234,13 +240,21 @@ gg_ani <- ggplot() +
                        oob = scales::squish) +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
-  theme(legend.title = element_text(angle = -90)) +
+  theme(legend.title = element_text(angle = -90),
+        axis.text.x=element_blank(),
+        axis.ticks.x = element_blank()) +
   guides(fill = guide_colourbar(title.position = "right")) +
   transition_time(year) +
-  ggtitle("{frame_time}")
+  ggtitle("Year: {as.integer(frame_time)}")
 
+graphics.off()
+# x11(width = 12, height = 6)
 
-animate(gg_ani, fps = 0.5)
+animate(gg_ani, fps = 1, width = 800, height = 450)
+
+animate(nations_plot, renderer = ffmpeg_renderer(), width = 800, height = 450)
+
+gganimate::animate(gg_ani, nframes = 11)
 # animate(gg_ani, renderer = ffmpeg_renderer(), fps = 0.5)
 anim_save("Figures/MonthlyBiomass.gif")
 

@@ -18,8 +18,6 @@ o_CO2_Scenario <- "co2"
 o_Variable <- c("tsb", "tcb", "b10cm", "b30cm")
 o_Region <- "global"
 o_TempRes <- "monthly"
-o_ReportYear1 <- c("1860")
-o_ReportYear2 <- c("1869")
 
 #Example: apecosm_cesm1-bgc_nobc_historical_nosoc_co2_b10cm_global_monthly_1860-1869.nc4
 
@@ -29,7 +27,7 @@ files <- c(paste0(out_dir,"CESM_pi_withZooMSS.rds"),
            paste0(out_dir,"CESM_nppControl_withZooMSS.rds"),
            paste0(out_dir,"CESM_tempControl_withZooMSS.rds"))
 
-for (f in 4:length(files)){
+for (f in 1:length(files)){
 
   dat <- read_rds(files[f])
   dat$days <- as.numeric(dat$time - as_date("1850-01-01"))
@@ -45,6 +43,7 @@ for (f in 4:length(files)){
     arrange(days, lat, lon)
 
   rm(full_res)
+
   # Convert to lon, lat, time grid
   tsb <- tibble(array = array(out$tsb, dim=c(length(lon),length(lat),length(days))),
                 name = "Total system carbon biomass",

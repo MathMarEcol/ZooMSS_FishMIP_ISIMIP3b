@@ -35,9 +35,9 @@ weight30 <- 10^round(log10(30^(1/3)*100),1)
 MLD <- 75
 
 #### Load ZooMSS Matrix Data ####
-enviro_data <- read_rds("enviro_Matrix.RDS")
-res <- read_rds("Output/res_20200526_TheMatrix.RDS" )
-temp <- read_rds("20200526_TheMatrix_033860.RDS")
+enviro_data <- read_rds("~/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/enviro_Matrix.RDS")
+res <- read_rds("~/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/Output/res_20200526_TheMatrix.RDS" )
+temp <- read_rds("~/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/20200526_TheMatrix_000001.RDS")
 
 # enviro_data <- read_rds("/Users/jason/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/enviro_Matrix.RDS")
 # res <- read_rds("~/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/Output/res_20200526_TheMatrix.RDS" )
@@ -46,8 +46,6 @@ temp <- read_rds("20200526_TheMatrix_033860.RDS")
 w <- temp$model$param$w
 
 Bio <- fZooMSS_SizeBiomass(res, w) # Convert to wet weight biomass
-
-## STILL NEED TO DO CARBON
 
 Bio_df <- as_tibble(matrix(unlist(Bio), nrow=length(Bio), byrow=T)) %>%
   mutate(cellID = 1:n()) %>% # Create a cellID
