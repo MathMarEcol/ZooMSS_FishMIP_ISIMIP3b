@@ -15,12 +15,18 @@ enviro_data <- read_rds("~/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMa
 model <- c("pi", "hist", "rcp85")
 
 for (m in 1:length(model)){
-  file_p = sort(list.files(path = paste0(base_dir,"InputFiles", .Platform$file.sep,"raw", .Platform$file.sep,model[m]), pattern = paste0("cesm_",model[m],"_phy*"), full.names = TRUE))
-  file_s = sort(list.files(path = paste0(base_dir,"InputFiles", .Platform$file.sep, "raw", .Platform$file.sep, model[m]), pattern = paste0("cesm_",model[m],"_to*"), full.names = TRUE))
+  file_p = sort(list.files(path = paste0(base_dir,"InputFiles",
+                                         .Platform$file.sep,"raw",
+                                         .Platform$file.sep,model[m]),
+                           pattern = paste0("cesm_",model[m],"_phy*"), full.names = TRUE))
+  file_s = sort(list.files(path = paste0(base_dir,"InputFiles",
+                                         .Platform$file.sep, "raw",
+                                         .Platform$file.sep, model[m]),
+                           pattern = paste0("cesm_",model[m],"_to*"), full.names = TRUE))
 
   # Load files into tibble
-  nc <- bind_rows(map_df(file_p, function(x) hyper_tibble(x, na.rm = TRUE))) # Load phytoplankton files
-  nc2 <- bind_rows(map_df(file_s, function(x) hyper_tibble(x, na.rm = TRUE))) %>% # Load temperature files
+  nc <- bind_rows(map_df(file_p, function(x) hyper_tibble(x))) # Load phytoplankton files
+  nc2 <- bind_rows(map_df(file_s, function(x) hyper_tibble(x))) %>% # Load temperature files
     select("to")
   nc <- bind_cols(nc, nc2) # Join temp and phyto dataframes
   rm(nc2)
@@ -51,4 +57,3 @@ for (m in 1:length(model)){
 
   rm(nc, file_p, file_s, time)
 }
-
