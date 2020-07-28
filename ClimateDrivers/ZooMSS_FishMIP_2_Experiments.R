@@ -32,7 +32,7 @@ weight10 <- 10^round(log10(10^(1/3)*100),1) #using Weight (g) = 0.01 * length^3,
 weight30 <- 10^round(log10(30^(1/3)*100),1)
 
 #### Mixed Layer Depth ####
-MLD <- 75
+MLD <- 60
 
 #### Load ZooMSS Matrix Data ####
 enviro_data <- read_rds("~/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/enviro_Matrix.RDS")
@@ -44,8 +44,10 @@ temp <- read_rds("~/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/20
 # temp <- read_rds("/Users/jason/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/RawOutput/20200526_TheMatrix_000001.RDS")
 
 w <- temp$model$param$w
-
-Bio <- fZooMSS_SizeBiomass(res, w) # Convert to wet weight biomass
+carbon <- temp$model$param$Groups$Carbon
+Bio <- fZooMSS_CarbonBiomass(res, w, carbon) # Convert to carbon biomass
+Bio <- fZooMSS_SumSpecies(Bio) # Sum the species
+rm(res)
 
 Bio_df <- as_tibble(matrix(unlist(Bio), nrow=length(Bio), byrow=T)) %>%
   mutate(cellID = 1:n()) %>% # Create a cellID
@@ -54,13 +56,13 @@ Bio_df <- as_tibble(matrix(unlist(Bio), nrow=length(Bio), byrow=T)) %>%
          Weight = rep(w, times = length(Bio))) %>% # Make sure weight class is on every row
   # select(-SizeClass) %>%
   filter(Weight <= 100001) %>% # Remove very large stuff (100 kg)
-  mutate(BiomassC = Biomass * 0.1) %>% # convert to carbon biomass
+  # mutate(BiomassC = Biomass * 0.1) %>% # convert to carbon biomass
   add_column(tcb = 1, b10cm = 1, b30cm = 1) %>% # Create column of onces
   mutate(b10cm = replace(b10cm, Weight < weight10, 0), # Replace 1 with zero for rows outside weight range
          b30cm = replace(b30cm, Weight < weight30, 0), # Replace 1 with zero for rows outside weight range
-         tcb = tcb * BiomassC, # All consumers is simply biomass
-         b10cm = b10cm * BiomassC, # Multiply weight class switch (0,1) by Biomass
-         b30cm = b30cm * BiomassC)  # Multiply weight class switch (0,1) by Biomass
+         tcb = tcb * Biomass, # All consumers is simply biomass
+         b10cm = b10cm * Biomass, # Multiply weight class switch (0,1) by Biomass
+         b30cm = b30cm * Biomass)  # Multiply weight class switch (0,1) by Biomass
 
 Bio_sum <- Bio_df %>%
   group_by(cellID) %>%
@@ -72,11 +74,11 @@ Bio_sum <- Bio_df %>%
   left_join(select(enviro_data, cellID, chlo, sst), by = "cellID") %>%
   rename(SST = sst, Chl = chlo) %>%
   mutate(Chl_log10 = log10(Chl),
-         Chl_C_mg_m3 = 10^(0.89 * Chl_log10 + 1.79),
+         Chl_C_mg_m3 = 10^(0.89 * Chl_log10 + 1.79), #Convert Chl to Carbon using Maranon et al. 2014
          Chl_C_g_m2 = Chl_C_mg_m3/1000/MLD,
-         tsb = tcb + Chl_C_g_m2)   #Convert Chl to Carbon using Maranon et al. 2014
+         tsb = tcb + Chl_C_g_m2)
 
-
+rm(Bio, Bio_df, enviro_data)
 
 
 #### Get each of the 3 models and match to ZooMSS ####
@@ -148,6 +150,7 @@ tempControl <- tempControl %>%
 
 write_rds(tempControl, paste0(out_dir,"CESM_tempControl_withZooMSS.rds")) # Save to RDM
 
+rm(tempControl, out)
 
 #### 5. Change temperature (NPP control) ####
 # All forcings pre-industrial (1860-2100) except for
@@ -172,3 +175,5 @@ nppControl <- nppControl %>%
          b30cm = Bio_sum$b30cm[cellID])
 
 write_rds(nppControl, paste0(out_dir,"CESM_nppControl_withZooMSS.rds")) # Save to RDM
+
+rm(nppControl, out)
