@@ -103,8 +103,8 @@ for (f in 1:length(files)){
     ncatt_put(ncout, 0, "comments", "ZooMSS model output for ISIMIP2b and FishMIP NPPvSST experimental protocol")
     ncatt_put(ncout, 0, "ph_input_used", "no")
     ncatt_put(ncout, 0, "diazotroph_input_used", "only if included with integrated phytoplankton biomass")
-    ncatt_put(ncout, 0, "wet-weight to carbon conversion", "0.0352, from Weibe Fish Bull 73(4)")
-
+    ncatt_put(ncout, 0, "wet-weight to carbon conversion", "as per Heneghan et al. 2020 Ecological Modelling")
+    ncatt_put(ncout, 0, "Assumed Mixed Layer Depth", "60 m")
     ## Probably should include this but need to check the conversion
     # ncatt_put(ncout, 0, "length-weight_conversion", "esd = 2*(3/(4*pi)*weight)^(1/3)")
 
