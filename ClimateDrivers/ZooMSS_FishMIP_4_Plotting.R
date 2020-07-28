@@ -39,7 +39,9 @@ nc_nppC <- hyper_tibble(paste0(out_dir, "ZooMSS_cesm1-bgc_nobc_npp-control_nosoc
   rename(tcb_nppC = tcb)
 
 nc <- bind_cols(nc, nc_no, nc_tempC, nc_nppC) %>%
-  mutate(year = year(as_date(time, origin = "1850-1-1")))
+  mutate(year = year(as_date(time, origin = "1850-1-1"))) %>%
+  filter(year >= 1960)
+
 rm(nc_no, nc_nppC, nc_tempC)
 
 
@@ -53,10 +55,14 @@ nc_yr <- nc %>%
     tcb_nppC = mean(tcb_nppC),
     .groups = "keep") %>%
   ungroup() %>%
-  mutate(tcb_no = ((tcb_no-mean(tcb_no[1:10]))/mean(tcb_no[1:10])) + 1,
-         tcb_all = ((tcb_all-mean(tcb_all[1:10]))/mean(tcb_all[1:10])) + 1,
-         tcb_nppC = ((tcb_nppC-mean(tcb_nppC[1:10]))/mean(tcb_nppC[1:10])) + 1,
-         tcb_tempC = ((tcb_tempC-mean(tcb_tempC[1:10]))/mean(tcb_tempC[1:10])) + 1) %>%
+  # mutate(tcb_no = ((tcb_no-mean(tcb_no[1:10]))/mean(tcb_no[1:10])) + 1,
+  #        tcb_all = ((tcb_all-mean(tcb_all[1:10]))/mean(tcb_all[1:10])) + 1,
+  #        tcb_nppC = ((tcb_nppC-mean(tcb_nppC[1:10]))/mean(tcb_nppC[1:10])) + 1,
+  #        tcb_tempC = ((tcb_tempC-mean(tcb_tempC[1:10]))/mean(tcb_tempC[1:10])) + 1) %>%
+  mutate(tcb_no = (tcb_no/mean(tcb_no[1:10])),
+         tcb_all = (tcb_all/mean(tcb_all[1:10])),
+         tcb_nppC = (tcb_nppC/mean(tcb_nppC[1:10])),
+         tcb_tempC = (tcb_tempC/mean(tcb_tempC[1:10]))) %>%
   filter(year >= 1970)
 
 
