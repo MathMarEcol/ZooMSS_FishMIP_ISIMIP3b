@@ -31,20 +31,12 @@ for (m in 1:length(model)){
   nc <- bind_cols(nc, nc2) # Join temp and phyto dataframes
   rm(nc2)
 
-  # Convert Phyto to Chl using ZooMSS calc: from Maranon et al. 2014
-  # Phyto is in units of "mmol/m^2"
-  # / 1000 # to get to moles m-2
-  # / 75 # m MLD to moles m-3
-  # * 12.0107 # mol:g to g m-3
-  # * 1000 # to mg m-3
-
   # Process time with PCICt due to 365 day years
   if (str_detect(model[m], "pi")){
     time <- as.PCICt((nc$time-31 + 401500)*86400, cal="365_day", origin = "1661-01-01 00:00:00", tz = "UTC") # Something wrong with time in pi
   }else{
     time <- as.PCICt((nc$time-31)*86400, cal="365_day", origin = "1661-01-01 00:00:00", tz = "UTC") # Other models use same origin
   }
-
   nc$time <- round_date(as_date(as.character(time)), unit = "month") + 14 # Convert to lubridate time and round to 15th of month.
 
   nc <- nc %>%
@@ -57,3 +49,12 @@ for (m in 1:length(model)){
 
   rm(nc, file_p, file_s, time)
 }
+
+
+## Convert Phyto to Chl using ZooMSS calc: from Maranon et al. 2014
+# Phyto is in units of "mmol/m^2"
+# / 1000 # to get to moles m-2
+# / 75 # m MLD to moles m-3
+# * 12.0107 # mol:g to g m-3
+# * 1000 # to mg m-3
+
