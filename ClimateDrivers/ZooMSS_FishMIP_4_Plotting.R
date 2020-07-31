@@ -6,6 +6,8 @@ library(sf)
 library(raster)
 library(rnaturalearth)
 library(gganimate)
+library(transformr) #devtools::install_github("thomasp85/transformr")
+
 
 out_dir <- paste0("~",.Platform$file.sep,
                   "Nextcloud",.Platform$file.sep,
@@ -43,7 +45,6 @@ nc <- bind_cols(nc, nc_no, nc_tempC, nc_nppC) %>%
   filter(year >= 1960)
 
 rm(nc_no, nc_nppC, nc_tempC)
-
 
 ## Calculate Annual Averages
 nc_yr <- nc %>%
@@ -204,8 +205,7 @@ nc_wide <- nc %>%
   dplyr::select(lon, lat, year, tcb_all) %>%
   group_by(lon, lat, year) %>%
   summarise(
-    tcb = mean(tcb_all),
-    .groups = "keep") %>%
+    tcb = mean(tcb_all)) %>%
   ungroup() %>%
   pivot_wider(names_from = year, values_from = tcb, names_prefix = "X")
 
@@ -222,7 +222,7 @@ nc_ani_sf_long <- nc_ani_sf %>%
                values_to = "tcb") %>%
   mutate(year = str_replace(year, "X", ""),
          year = as.numeric(year)) %>%
-  filter(year == 1970) %>%
+  filter(year <= 1970) %>%
   st_as_sf()
 
 
@@ -254,15 +254,16 @@ gg_ani <- ggplot() +
   ggtitle("Year: {as.integer(frame_time)}")
 
 graphics.off()
-# x11(width = 12, height = 6)
+x11(width = 12, height = 6)
+animate(gg_ani, fps = 0.5, nframe = 11, width = 800, height = 450)
+anim_save("Figures/Annual_ZooMSS_Biomass.gif")
 
-animate(gg_ani, fps = 1, width = 800, height = 450)
 
 animate(nations_plot, renderer = ffmpeg_renderer(), width = 800, height = 450)
 
-gganimate::animate(gg_ani, nframes = 11)
+gganimate::animate(gg_ani, nframes = 100)
 # animate(gg_ani, renderer = ffmpeg_renderer(), fps = 0.5)
-anim_save("Figures/MonthlyBiomass.gif")
+
 
 
 
