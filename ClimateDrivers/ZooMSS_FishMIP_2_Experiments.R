@@ -39,9 +39,6 @@ enviro_data <- read_rds("~/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMa
 res <- read_rds("~/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/Output/res_20200526_TheMatrix.RDS" )
 temp <- read_rds("~/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/20200526_TheMatrix_000001.RDS")
 
-# enviro_data <- read_rds("/Users/jason/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/enviro_Matrix.RDS")
-# res <- read_rds("~/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/Output/res_20200526_TheMatrix.RDS" )
-# temp <- read_rds("/Users/jason/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/RawOutput/20200526_TheMatrix_000001.RDS")
 
 w <- temp$model$param$w
 carbon <- temp$model$param$Groups$Carbon
@@ -80,7 +77,6 @@ Bio_sum <- Bio_df %>%
 
 rm(Bio, Bio_df, enviro_data)
 
-
 #### Get each of the 3 models and match to ZooMSS ####
 # 1. Pre-industrial: All forcings pre-industrial (1860-2100)
 # 2. Historical: All forcings historical (1860-2005)
@@ -107,7 +103,9 @@ for (m in 1:length(model)){
            tsb = Bio_sum$tsb[cellID],
            tcb = Bio_sum$tcb[cellID],
            b10cm = Bio_sum$b10cm[cellID],
-           b30cm = Bio_sum$b30cm[cellID])
+           b30cm = Bio_sum$b30cm[cellID],
+           Chl_log10_ZooMSS = Bio_sum$Chl_log10[cellID],
+           SST_ZooMSS = Bio_sum$SST[cellID])
 
   write_rds(nc, paste0(out_dir,"CESM_",model[m],"_withZooMSS.rds")) # Save to RDM
 
@@ -146,7 +144,9 @@ tempControl <- tempControl %>%
          tsb = Bio_sum$tsb[cellID],
          tcb = Bio_sum$tcb[cellID],
          b10cm = Bio_sum$b10cm[cellID],
-         b30cm = Bio_sum$b30cm[cellID])
+         b30cm = Bio_sum$b30cm[cellID],
+         Chl_log10_ZooMSS = Bio_sum$Chl_log10[cellID],
+         SST_ZooMSS = Bio_sum$SST[cellID])
 
 write_rds(tempControl, paste0(out_dir,"CESM_tempControl_withZooMSS.rds")) # Save to RDM
 
@@ -172,8 +172,11 @@ nppControl <- nppControl %>%
          tsb = Bio_sum$tsb[cellID],
          tcb = Bio_sum$tcb[cellID],
          b10cm = Bio_sum$b10cm[cellID],
-         b30cm = Bio_sum$b30cm[cellID])
+         b30cm = Bio_sum$b30cm[cellID],
+         Chl_log10_ZooMSS = Bio_sum$Chl_log10[cellID],
+         SST_ZooMSS = Bio_sum$SST[cellID])
 
 write_rds(nppControl, paste0(out_dir,"CESM_nppControl_withZooMSS.rds")) # Save to RDM
 
 rm(nppControl, out)
+
