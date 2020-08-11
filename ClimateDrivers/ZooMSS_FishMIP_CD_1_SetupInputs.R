@@ -8,10 +8,6 @@ base_dir <- paste0("~",.Platform$file.sep,
                   "MME2Work",.Platform$file.sep,
                   "FishMIP",.Platform$file.sep)
 
-## Load ZooMSS Matrix Enviro Data
-enviro_data <- read_rds("~/Nextcloud/MME2Work/ZooMSS/_LatestModel/20200526_TheMatrix/enviro_Matrix.RDS")
-
-
 model <- c("pi", "hist", "rcp85")
 
 for (m in 1:length(model)){

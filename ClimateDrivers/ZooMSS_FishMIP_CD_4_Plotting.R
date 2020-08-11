@@ -8,7 +8,6 @@ library(rnaturalearth)
 library(gganimate) #devtools::install_github("thomasp85/gganimate")
 library(transformr) #devtools::install_github("thomasp85/transformr")
 
-
 out_dir <- paste0("~",.Platform$file.sep,
                   "Nextcloud",.Platform$file.sep,
                   "MME2Work",.Platform$file.sep,
@@ -195,7 +194,7 @@ for (v in 1:4){
 
 graphics.off()
 x11(width = 26, height = 4)
-wrap_plots(gg_map, ncol = 2, guides = "collect")
+wrap_plots(gg_map, ncol = 4, guides = "collect")
 ggsave("Figures/ZooMSS_tcb_MappedChange.pdf")
 
 

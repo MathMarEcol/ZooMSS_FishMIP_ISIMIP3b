@@ -1,6 +1,11 @@
 library(tidyverse)
 library(ncdf4)
 library(lubridate)
+# After running this, files are to be uploaded to:
+# /work/bb0820/ISIMIP/ISIMIP2b/UploadArea/marine-fishery_global/ZooMSS/_tmp
+
+
+# For Derek’s paper: /work/bb0820/ISIMIP/ISIMIP3b/UploadArea/marine-fishery_global/ZooMSS/_tmp
 
 out_dir <- paste0("~",.Platform$file.sep,
                   "Nextcloud",.Platform$file.sep,
