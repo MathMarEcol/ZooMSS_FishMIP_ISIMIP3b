@@ -3,7 +3,7 @@ library(yaImpute)
 
 source("fZooMSS_Xtras.R")
 
-out_dir <- paste0("~",.Platform$file.sep,
+base_dir <- paste0("~",.Platform$file.sep,
                   "Nextcloud",.Platform$file.sep,
                   "MME2Work",.Platform$file.sep,
                   "FishMIP",.Platform$file.sep,
@@ -47,11 +47,11 @@ Bio_df <- as_tibble(matrix(unlist(Bio), nrow=length(Bio), byrow=T)) %>%
   # select(-SizeClass) %>%
   filter(Weight <= 100001) %>% # Remove very large stuff (100 kg)
   # mutate(BiomassC = Biomass * 0.1) %>% # convert to carbon biomass
-  add_column(tcb = 1, tcblog10_0 = 1, tcblog10_1 = 0, tcblog10_2 = 0,
+  add_column(tcb = 1, tcblog10_0 = 0, tcblog10_1 = 0, tcblog10_2 = 0,
              tcblog10_3 = 0, tcblog10_4 = 0, tcblog10_5 = 0, tpb = 1,
              bp30cm = 0, bp30to90cm = 0, bp90cm = 0) %>% # Create column of ones
   mutate(tcb = tcb * Biomass, # All consumers is simply biomass
-         tpb = tpb * Biomass, # All consumers is simply biomass
+         tpb = tpb * Biomass, # All pelagic consumers is simply biomass
          tcblog10_0 = replace(tcblog10_0, Weight >= w_lim[1] & Weight < w_lim[2], 1), # Replace 1 with zero for rows outside weight range
          tcblog10_1 = replace(tcblog10_1, Weight >= w_lim[2] & Weight < w_lim[3], 1), # Replace 1 with zero for rows outside weight range
          tcblog10_2 = replace(tcblog10_2, Weight >= w_lim[3] & Weight < w_lim[4], 1), # Replace 1 with zero for rows outside weight range
@@ -74,111 +74,50 @@ Bio_df <- as_tibble(matrix(unlist(Bio), nrow=length(Bio), byrow=T)) %>%
 Bio_sum <- Bio_df %>%
   group_by(cellID) %>%
   summarise(tcb = sum(tcb),
-            b10cm = sum(b10cm),
-            b30cm = sum(b30cm),
+            tcblog10_0 = sum(tcblog10_0),
+            tcblog10_1 = sum(tcblog10_1),
+            tcblog10_2 = sum(tcblog10_2),
+            tcblog10_3 = sum(tcblog10_3),
+            tcblog10_4 = sum(tcblog10_4),
+            tcblog10_5 = sum(tcblog10_5),
+            tpb = sum(tpb),
+            bp30cm = sum(bp30cm),
+            bp30to90cm = sum(bp30to90cm),
+            bp90cm = sum(bp90cm),
             .groups = "keep") %>%
   ungroup() %>%
   left_join(select(enviro_data, cellID, chlo, sst), by = "cellID") %>%
-  rename(SST = sst, Chl = chlo)
+  rename(SST = sst, Chl_log10 = chlo)
 
 rm(Bio, Bio_df, enviro_data)
 
-
-
-
-files = list.files(path = out_dir, pattern = "*.rds", full.names = TRUE)
+files = list.files(path = paste0(base_dir, "Input"), pattern = "*.rds", full.names = FALSE)
 
 for (f in 1:length(files)){
-  nc <- read_rds(files[f])
+
+  nc <- read_rds(paste0(base_dir, "Input", .Platform$file.sep, files[f]))
   out <- ann(as.matrix(Bio_sum[,c("SST", "Chl_log10")]),
              as.matrix(nc[,c("SST", "Chl_log10")]),
              k = 1, verbose = FALSE)
+
   nc <- nc %>%
     mutate(cellID = out$knnIndexDist[,1],
            EuclideanDist = out$knnIndexDist[,2],
-           tsb = Bio_sum$tsb[cellID],
            tcb = Bio_sum$tcb[cellID],
-           b10cm = Bio_sum$b10cm[cellID],
-           b30cm = Bio_sum$b30cm[cellID],
+           tpb = Bio_sum$tpb[cellID],
+           tcblog10_0 = Bio_sum$tcblog10_0[cellID],
+           tcblog10_1 = Bio_sum$tcblog10_1[cellID],
+           tcblog10_2 = Bio_sum$tcblog10_2[cellID],
+           tcblog10_3 = Bio_sum$tcblog10_3[cellID],
+           tcblog10_4 = Bio_sum$tcblog10_4[cellID],
+           tcblog10_5 = Bio_sum$tcblog10_5[cellID],
+           bp30cm = Bio_sum$bp30cm[cellID],
+           bp30to90cm = Bio_sum$bp30to90cm[cellID],
+           bp90cm = Bio_sum$bp90cm[cellID],
            Chl_log10_ZooMSS = Bio_sum$Chl_log10[cellID],
            SST_ZooMSS = Bio_sum$SST[cellID])
 
-  write_rds(nc, str_replace(files[f],".rds", "_withZooMSS.rds")) # Save to RDM
+  write_rds(nc, paste0(base_dir, "Output", .Platform$file.sep, str_replace(files[f],".rds", "_withZooMSS.rds"))) # Save to RDM
   rm(nc, out)
 }
-
-
-
-
-
-
-
-
-
-
-
-#### Revert to original files and setup the experiments ####
-hist <- hist %>%
-  select(c(lat, lon, time, SST, Chl_log10)) %>%
-  filter(time < as.POSIXct("2006-01-01"))
-
-rcp85 <- rcp85 %>%
-  select(c(lat, lon, time, SST, Chl_log10)) %>%
-  filter(time >= as.POSIXct("2006-01-01"))
-
-#### # 4. Change npp (temperature control) ####
-# All forcings pre-industrial (1860-2100) except for
-# NPP. For NPP use historical and rcp85 forcings one
-# after the other (run historical 1860-2005, then
-# RCP8.5 2006-2100)
-
-tempControl <- pi %>%
-  select(c(lat, lon, time, SST)) %>%
-  mutate(Chl_log10 = c(hist$Chl_log10, rcp85$Chl_log10))
-
-out <- ann(as.matrix(Bio_sum[,c("SST", "Chl_log10")]),
-           as.matrix(tempControl[,c("SST", "Chl_log10")]),
-           k = 1, verbose = FALSE)
-
-tempControl <- tempControl %>%
-  mutate(cellID = out$knnIndexDist[,1],
-         EuclideanDist = out$knnIndexDist[,2],
-         tsb = Bio_sum$tsb[cellID],
-         tcb = Bio_sum$tcb[cellID],
-         b10cm = Bio_sum$b10cm[cellID],
-         b30cm = Bio_sum$b30cm[cellID],
-         Chl_log10_ZooMSS = Bio_sum$Chl_log10[cellID],
-         SST_ZooMSS = Bio_sum$SST[cellID])
-
-write_rds(tempControl, paste0(out_dir,"CESM_tempControl_withZooMSS.rds")) # Save to RDM
-
-rm(tempControl, out)
-
-#### 5. Change temperature (NPP control) ####
-# All forcings pre-industrial (1860-2100) except for
-# temperature. For temperature use historical and
-# rcp85 forcings one after the other (run historical
-# 1860-2005, then RCP8.5 2006-2100)
-
-nppControl <- pi %>%
-  select(c(lat, lon, time, Chl_log10)) %>%
-  mutate(SST = c(hist$SST, rcp85$SST))
-
-out <- ann(as.matrix(Bio_sum[,c("SST", "Chl_log10")]),
-           as.matrix(nppControl[,c("SST", "Chl_log10")]),
-           k = 1, verbose = FALSE)
-
-nppControl <- nppControl %>%
-  mutate(cellID = out$knnIndexDist[,1],
-         EuclideanDist = out$knnIndexDist[,2],
-         tsb = Bio_sum$tsb[cellID],
-         tcb = Bio_sum$tcb[cellID],
-         b10cm = Bio_sum$b10cm[cellID],
-         b30cm = Bio_sum$b30cm[cellID],
-         Chl_log10_ZooMSS = Bio_sum$Chl_log10[cellID],
-         SST_ZooMSS = Bio_sum$SST[cellID])
-
-write_rds(nppControl, paste0(out_dir,"CESM_nppControl_withZooMSS.rds")) # Save to RDM
-
-rm(nppControl, out)
 

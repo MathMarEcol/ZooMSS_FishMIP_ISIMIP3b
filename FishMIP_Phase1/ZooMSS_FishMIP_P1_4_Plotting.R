@@ -1,3 +1,87 @@
+
+library(tidyverse)
+library(lubridate)
+library(ncdf4)
+library(raster)
+
+
+gfdl <- readRDS("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/gfdl-esm4_r1i1p1f1_ssp585_onedeg_global_annual_2015_2100_withZooMSS.rds")
+
+gfdl <- gfdl %>%
+  filter(time=="2015-01-01")
+
+ggplot(dat = gfdl, aes(x = lon, y = lat, fill = tcb, colour = tcb)) + geom_point(size = 0.1)
+
+
+ipsl <- readRDS("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ipsl-cm6a-lr_r1i1p1f1_ssp585_onedeg_global_annual_2015_2100_withZooMSS.rds")
+ipsl <- ipsl %>%
+  filter(time=="2015-01-01")
+ggplot(dat = ipsl, aes(x = lon, y = lat, fill = tcb, colour = tcb)) + geom_point(size = 0.1)
+
+# gfld <- readRDS("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/gfdl-esm4_r1i1p1f1_picontrol_onedeg_global_annual_1601_2100_withZooMSS.rds")
+# gfdl <- gfdl %>%
+#   filter(time=="1601-01-01")
+
+
+
+r <- raster("/Users/jason/Nextcloud/MME1Data/FishMIP_Phase1_Forcings/gfdl-esm4_r1i1p1f1_historical_chl_z60_onedeg_global_annual_1850_2014.nc")
+
+
+
+x <- ncvar_get(nc_open("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ZooMSS_ipsl-cm6a-lr_r1i1p1f1_nobc_historical_nat_co2_tcblog10_global_annual_1850-2014.nc4"), varid = "tcblog10")
+
+filled.contour(x[,,10,1])
+
+
+x <- ncvar_get(nc_open("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ZooMSS_gfdl-esm4_r1i1p1f1_nobc_historical_nat_co2_bp30cm_global_annual_1850-2014.nc4"), varid = "bp30cm")
+filled.contour(x[,,100])
+
+
+r <- raster("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ZooMSS_ipsl-cm6a-lr_r1i1p1f1_nobc_historical_nat_co2_tpb_global_annual_1850-2014.nc4")
+plot(r)
+
+r <- raster("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ZooMSS_gfdl-esm4_r1i1p1f1_nobc_historical_nat_co2_tpb_global_annual_1850-2014.nc4")
+plot(r)
+
+
+
+
+r <- raster("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ZooMSS_gfdl-esm4_r1i1p1f1_nobc_historical_nat_co2_tcb_global_annual_1850-2014.nc4")
+plot(r)
+
+r <- raster("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ZooMSS_gfdl-esm4_r1i1p1f1_nobc_picontrol_nat_co2_tcb_global_annual_1601-2100.nc4")
+plot(r)
+
+
+r <- raster("/Users/jason/Nextcloud/MME1Data/FishMIP_Phase1_Forcings/gfdl-esm4_r1i1p1f1_historical_tos_onedeg_global_annual_1850_2014.nc")
+plot(r)
+
+r <- raster("/Users/jason/Nextcloud/MME1Data/FishMIP_Phase1_Forcings/gfdl-esm4_r1i1p1f1_historical_chl_z60_onedeg_global_annual_1850_2014.nc")
+plot(r)
+
+
+r <- raster("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ZooMSS_gfdl-esm4_r1i1p1f1_nobc_historical_nat_co2_bp30cm_global_annual_1850-2014.nc4")
+plot(r)
+
+r <- raster("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ZooMSS_ipsl-cm6a-lr_r1i1p1f1_nobc_historical_nat_co2_bp30cm_global_annual_1850-2014.nc4")
+plot(r)
+
+
+
+
+r <- raster("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ZooMSS_ipsl-cm6a-lr_r1i1p1f1_nobc_ssp126_nat_co2_tcb_global_annual_2015-2100.nc4")
+plot(r)
+
+r <- raster("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ZooMSS_gfdl-esm4_r1i1p1f1_nobc_ssp126_nat_co2_tcb_global_annual_2015-2100.nc4")
+plot(r)
+
+r <- raster("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ZooMSS_ipsl-cm6a-lr_r1i1p1f1_nobc_historical_nat_co2_tcblog10_global_annual_1850-2014.nc4", level = 100)
+plot(r)
+
+r <- raster("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ZooMSS_ipsl-cm6a-lr_r1i1p1f1_nobc_picontrol_nat_co2_tcb_global_annual_1601-2100.nc4")
+plot(r)
+
+
 library(tidyverse)
 library(tidync)
 library(lubridate)
