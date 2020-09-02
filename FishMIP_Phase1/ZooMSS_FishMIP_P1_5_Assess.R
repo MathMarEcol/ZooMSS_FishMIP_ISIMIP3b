@@ -4,6 +4,8 @@ library(ncdf4)
 library(tidync)
 library(lubridate)
 library(PCICt)
+
+
 # Check the raw input files
 r <- raster("/Users/jason/Nextcloud/MME1Data/FishMIP_Phase1_Forcings/Test/chl_Omon_GFDL-ESM4_historical_r1i1p1f1_gr_195001-196912.nc", level = 1)
 s <- stack("/Users/jason/Nextcloud/MME1Data/FishMIP_Phase1_Forcings/Test/chl_Omon_GFDL-ESM4_historical_r1i1p1f1_gr_195001-196912.nc")
@@ -13,7 +15,22 @@ r2 <- raster("/Users/jason/Nextcloud/MME1Data/FishMIP_Phase1_Forcings/Test/chl_O
 s2 <- stack("/Users/jason/Nextcloud/MME1Data/FishMIP_Phase1_Forcings/Test/chl_Omon_IPSL-CM6A-LR_historical_r1i1p1f1_gn_195001-201412.nc")
 n2 <- nc_open("/Users/jason/Nextcloud/MME1Data/FishMIP_Phase1_Forcings/Test/chl_Omon_IPSL-CM6A-LR_historical_r1i1p1f1_gn_195001-201412.nc")
 
-# Outcome: There seems to be problems with IPSL and its Chl. As well as the IPSL gridding.
+
+
+graphics.off()
+
+plot(log10(r*1e6),
+     main = "1950 GFDL (mg Chl m-3)",
+     sub = "chl_Omon_GFDL-ESM4_historical_r1i1p1f1_gr_195001-196912.nc")
+
+plot(log10(r2*1e6),
+     main = "1950 IPSL (mg Chl m-3)",
+     sub = "chl_Omon_IPSL-CM6A-LR_historical_r1i1p1f1_gn_195001-201412.nc",
+     xlim = c(0, 360))
+
+ # Outcome: There seems to be problems with IPSL and its Chl. As well as the IPSL gridding.
+
+
 
 
 ## Now lets check it with tidync which seems to work pretty well
@@ -42,12 +59,25 @@ max(n2$chl)
 
 
 
+
+
+# Check the intermediate match up data
+dat <- readRDS("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ipsl-cm6a-lr_picontrol_tos_onedeg_global_annual_1950_2014_withZooMSS.rds")
+ggplot(data = dat, aes(x = Chl_log10, y = tcb)) +
+  geom_point()
+
+
+
+
+
+
+
 # Now check the final data products.
 rg <- raster("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ZooMSS_gfdl-esm4_r1i1p1f1_nobc_historical_nat_co2_tcb_global_annual_1850-2014.nc4")
 plot(log10(rg)) # Looks ok, apart form scale issues
 
 ri <- raster("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ZooMSS_ipsl-cm6a-lr_r1i1p1f1_nobc_historical_nat_co2_tcb_global_annual_1850-2014.nc4")
-plot(ri) # Looks ok
+plot(ri) # Values are too consistent - Chl is too high.
 
 
 
