@@ -1,0 +1,40 @@
+---
+title: "Check ESM Chlorophyll a for FishMIP"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(raster)
+```
+
+In each of the nc files, Chl is recorded in kg m-3. Normally we would view chlorophyll in mg m-3, so we multiply each layer by 1e6. We expect most values to be in the range of 0.001 to 10 mg m-3 (log10 -3 to 1).
+
+To ensure there were no scaling errors, I have downloaded the raw files from ESGF (https://esgf.nci.org.au/search/cmip6-nci/) as indicated by the filenames in the plot subtitle.
+
+## First check GFDL
+```{r message=FALSE, warning=FALSE}
+r <- raster("/Users/jason/Nextcloud/MME1Data/FishMIP_Phase1_Forcings/Test/chl_Omon_GFDL-ESM4_historical_r1i1p1f1_gr_195001-196912.nc", level = 1)
+
+plot(log10(r*1e6),
+     main = "1950 GFDL (log10(mg Chl m-3))",
+     sub = "chl_Omon_GFDL-ESM4_historical_r1i1p1f1_gr_195001-196912.nc")
+
+```
+
+GFDL range looks reasonable.
+
+
+
+## Now check IPSL
+```{r message=FALSE, warning=FALSE}
+r2 <- raster("/Users/jason/Nextcloud/MME1Data/FishMIP_Phase1_Forcings/Test/chl_Omon_IPSL-CM6A-LR_historical_r1i1p1f1_gn_195001-201412.nc", level = 1)
+
+plot(log10(r2*1e6),
+     main = "1950 IPSL (log10(mg Chl m-3))",
+     sub = "chl_Omon_IPSL-CM6A-LR_historical_r1i1p1f1_gn_195001-201412.nc")
+
+```
+
+IPSL range is way too high. Possibly 3 orders of magnitude. Is this a conversion error?
