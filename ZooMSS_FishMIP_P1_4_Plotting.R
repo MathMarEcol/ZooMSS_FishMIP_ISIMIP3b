@@ -63,12 +63,12 @@ plotGlobalYear <- function(dat, tit, w_sf){
   names(dat) <- "layer"
   dat <- st_as_sf(rasterToPolygons(dat)) %>%
     st_transform(crs = st_crs(robCRS)) %>% # Convert to Robinson Projection
-    mutate(layer = log10(layer/1e3)) # Convert to kg
+    mutate(layer = log10(layer)) # Convert to kg
 
   gg <- ggplot() +
     geom_sf(data = dat, aes(fill = layer), colour = NA) +
     geom_sf(data = w_sf, size = 0.05, fill = "grey20") +
-    scale_fill_gradient(name = expression("Total Biomass (log"[10]*"(kg m"^-2*"))"),
+    scale_fill_gradient(name = expression("Total Biomass (log"[10]*"(g m"^-2*"))"),
                         limits = c(quantile(dat$layer, .10), quantile(dat$layer, .90)),
                         low = "yellow",
                         high = "red",
