@@ -202,3 +202,80 @@ for(v in 1:length(var)){
   wrap_plots(gg_map2100, ncol = 2)
   ggsave(paste0("Figures/ZooMSS_Map2100_",var[v],".pdf"))
 }
+
+
+
+## Now look at Chlorophyll
+
+
+plotChlTimeseries <- function(d1, d2, tit){
+
+  dat <- rbind(d1, d2) %>%
+    dplyr::select(-(EuclideanDist:bp90cm)) %>%
+    group_by(year) %>%
+    summarise(Chl = 10^(mean(Chl_log10, na.rm = TRUE)),
+              .groups = "keep") %>%
+    arrange(year) %>%
+    ungroup()
+
+  # This doesn't seem to work in mutate. It just returns 0
+  dat$Change = (dat$Chl - median(dat$Chl[1:10], na.rm = TRUE))/median(dat$Chl[1:10], na.rm = TRUE) * 100
+
+  gg <- ggplot(data = dat, aes(x = year, y = Change)) +
+    geom_point() +
+    geom_smooth(method = "lm") +
+    ggtitle(tit) +
+    theme_bw() +
+    theme(title = element_text(size = 8)) +
+    ylab("Total Chl Change (%)")
+  return(gg)
+}
+
+
+gg_chl <- list()
+d1 <- read_rds("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/gfdl-esm4_picontrol_tos_onedeg_global_annual_1950_2014_withZooMSS.rds")
+d2 <- read_rds("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/gfdl-esm4_picontrol_tos_onedeg_global_annual_2015_2100_withZooMSS.rds")
+tit <- "GFDL PRE-INDUSTRIAL Chl (1950-2100 Change)"
+gg_chl[[1]] <- plotChlTimeseries(d1, d2, tit)
+rm(d1, d2)
+
+d1 <- read_rds("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ipsl-cm6a-lr_picontrol_tos_onedeg_global_annual_1950_2014_withZooMSS.rds")
+d2 <- read_rds("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ipsl-cm6a-lr_picontrol_tos_onedeg_global_annual_2015_2100_withZooMSS.rds")
+tit <- "IPSL PRE-INDUSTRIAL Chl (1950-2100 Change)"
+gg_chl[[2]] <- plotChlTimeseries(d1, d2, tit)
+rm(d1, d2)
+
+d1 <- read_rds("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/gfdl-esm4_historical_tos_onedeg_global_annual_1950_2014_withZooMSS.rds")
+d2 <- read_rds("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/gfdl-esm4_ssp126_tos_onedeg_global_annual_2015_2100_withZooMSS.rds")
+tit <- "GFDL SSP126 Chl (1950-2100 Change)"
+gg_chl[[3]] <- plotChlTimeseries(d1, d2, tit)
+rm(d1, d2)
+
+d1 <- read_rds("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ipsl-cm6a-lr_historical_tos_onedeg_global_annual_1950_2014_withZooMSS.rds")
+d2 <- read_rds("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ipsl-cm6a-lr_ssp126_tos_onedeg_global_annual_2015_2100_withZooMSS.rds")
+tit <- "IPSL SSP126 Chl (1950-2100 Change)"
+gg_chl[[4]] <- plotChlTimeseries(d1, d2, tit)
+rm(d1, d2)
+
+d1 <- read_rds("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/gfdl-esm4_historical_tos_onedeg_global_annual_1950_2014_withZooMSS.rds")
+d2 <- read_rds("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/gfdl-esm4_ssp585_tos_onedeg_global_annual_2015_2100_withZooMSS.rds")
+tit <- "GFDL SSP585 Chl (1950-2100 Change)"
+gg_chl[[5]] <- plotChlTimeseries(d1, d2, tit)
+rm(d1, d2)
+
+d1 <- read_rds("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ipsl-cm6a-lr_historical_tos_onedeg_global_annual_1950_2014_withZooMSS.rds")
+d2 <- read_rds("/Users/jason/Nextcloud/MME2Work/FishMIP/Phase1/Output/ipsl-cm6a-lr_ssp585_tos_onedeg_global_annual_2015_2100_withZooMSS.rds")
+tit <- "IPSL SSP585 Chl (1950-2100 Change)"
+gg_chl[[6]] <- plotChlTimeseries(d1, d2, tit)
+rm(d1, d2)
+
+
+### Time Series ###
+graphics.off()
+x11(width = 12, height = 6)
+wrap_plots(gg_chl, ncol = 2)
+ggsave("Figures/Chl_TimeSeriesDiff.pdf")
+
+
+
+

@@ -31,8 +31,6 @@ plot(log10(r2*1e6),
  # Outcome: There seems to be problems with IPSL and its Chl. As well as the IPSL gridding.
 
 
-
-
 ## Now lets check it with tidync which seems to work pretty well
 n <- hyper_tibble("/Users/jason/Nextcloud/MME1Data/FishMIP_Phase1_Forcings/Test/chl_Omon_GFDL-ESM4_historical_r1i1p1f1_gr_195001-196912.nc", lev = lev < 5, time = time < 36850)
 n <- n %>%
