@@ -17,3 +17,6 @@ Blanchard, Julia L., Ryan F. Heneghan, Jason D. Everett, Rowan Trebilco, and Ant
 Heneghan, Ryan F., Jason D. Everett, Julia L. Blanchard, and Anthony J. Richardson. “Zooplankton Are Not Fish: Improving Zooplankton Realism in Size-Spectrum Models Mediates Energy Transfer in Food Webs.” Frontiers in Marine Science 3 (October 19, 2016). https://doi.org/10.3389/fmars.2016.00201.
 
 Heneghan, Ryan F., Eric Galbraith, Julia L. Blanchard, Cheryl Harrison, Nicolas Barrier, Catherine Bulman, William Cheung, et al. “Disentangling Diverse Responses to Climate Change among Global Marine Ecosystem Models.” Progress in Oceanography 198 (November 2021): 102659. https://doi.org/10.1016/j.pocean.2021.102659.
+
+Tittensor, Derek P., Camilla Novaglio, Cheryl S. Harrison, Ryan F. Heneghan, Nicolas Barrier, Daniele Bianchi, Laurent Bopp, et al. “Next-Generation Ensemble Projections Reveal Higher Climate Risks for Marine Ecosystems.” Nature Climate Change 11, no. 11 (November 2021): 973–81. https://doi.org/10.1038/s41558-021-01173-9.
+
