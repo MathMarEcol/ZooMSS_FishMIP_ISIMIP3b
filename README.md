@@ -1,4 +1,4 @@
-# ZooMSS_FishMIP
+# ZooMSS FishMIP output for ISIMIP3b simulation output
  
 These code were used to create the output for ZooMSS within the ensemble simulations published in Tittensor et al. (2021) and used within "Chapter 3: Oceans and Coastal Ecosystems and their Services" of the IPCC WGII Sixth Assessment Report (https://www.ipcc.ch/report/ar6/wg2/chapter/chapter-3/).
  
